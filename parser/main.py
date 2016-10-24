@@ -3,7 +3,7 @@ import sys
 from antlr4 import *
 from FOLLexer import FOLLexer
 from FOLParser import FOLParser
-from Z3Tree import Z3FromTree, treeFromZ3
+from Z3Tree import Z3FromTree, z3visitor
 from TreeFromParser import TreeFromParser
 from z3 import *
 
@@ -22,7 +22,6 @@ def main(argv):
         print('Number of arguments invalid')
         return
     z3 = Z3FromTree().visit(TreeFromParser().visit(parse(argv[1])))
-    print(treeFromZ3(z3))
     solver = Solver()
     if len(argv) == 2:
         print(z3)
@@ -32,7 +31,8 @@ def main(argv):
         print('check:', check)
         if check == sat:
             print('model', solver.model())
-        print('qe:', simplify(qe(simplify(z3)).as_expr()))
+        # print('qe:', simplify(qe(simplify(z3)).as_expr()))
+        print('qe:', z3visitor(simplify(qe(simplify(z3)).as_expr())))
     if len(argv) > 2:
         z32 = Z3FromTree().visit(TreeFromParser().visit(parse(argv[2])))
         print(z3)

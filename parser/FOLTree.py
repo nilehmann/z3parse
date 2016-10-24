@@ -2,7 +2,7 @@ class FOLNode:
     def __init__(self, children=[]):
         self._children = children
 
-    def children(self, i):
+    def children(self, i=None):
         if i is None:
             return self._children
         else:
@@ -22,6 +22,9 @@ class NotNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitNot(self)
 
+    def __str__(self):
+        return '¬ %s' % str(self.children(0))
+
 
 class IffNode(FOLNode):
     def __init__(self, left, right=None):
@@ -37,6 +40,8 @@ class IffNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitIff(self)
 
+    def __str__(self):
+        return '{} <-> {}'.format(*self.children)
 
 class ImplNode(FOLNode):
     def __init__(self, left, right=None):
@@ -52,6 +57,8 @@ class ImplNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitImpl(self)
 
+    def __str__(self):
+        return '{} -> {}'.format(*self.children())
 
 class OrNode(FOLNode):
     def __init__(self, left, right=None):
@@ -67,6 +74,8 @@ class OrNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitOr(self)
 
+    def __str__(self):
+        return '{} or {}'.format(*self.children())
 
 class AndNode(FOLNode):
     def __init__(self, left, right=None):
@@ -82,6 +91,8 @@ class AndNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitAnd(self)
 
+    def __str__(self):
+        return '{} and {}'.format(*self.children())
 
 class ExistsNode(FOLNode):
     def __init__(self, ids, formula):
@@ -97,6 +108,8 @@ class ExistsNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitExists(self)
 
+    def __str__(self):
+        return 'exists {}, {}'.format(' '.join(self.ids()), *self.children())
 
 class ForAllNode(FOLNode):
     def __init__(self, ids, formula):
@@ -112,16 +125,20 @@ class ForAllNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitForAll(self)
 
+    def __str__(self):
+        return 'forall {}, {}'.format(' '.join(self.ids()), *self.children())
 # Atom
 
 
 class FalseNode(FOLNode):
-    def __init__(self, any):
+    def __init__(self):
         pass
 
     def accept(self, visitor):
         return visitor.visitFalse(self)
 
+    def __str__(self):
+        return 'False'
 
 class TrueNode(FOLNode):
     def __init__(self, *args):
@@ -130,6 +147,8 @@ class TrueNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitTrue(self)
 
+    def __str__(self):
+        return 'True'
 
 class PropNode(FOLNode):
     def __init__(self, name, *args):
@@ -140,6 +159,9 @@ class PropNode(FOLNode):
 
     def accept(self, visitor):
         return visitor.visitProp(self)
+
+    def __str__(self):
+        return self._name
 
 
 class LeNode(FOLNode):
@@ -156,6 +178,9 @@ class LeNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitLe(self)
 
+    def __str__(self):
+        return '%s <= %s' % (str(self.children(0)), str(self.children(1)))
+
 
 class GeNode(FOLNode):
     def __init__(self, left, right=None):
@@ -171,6 +196,8 @@ class GeNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitGe(self)
 
+    def __str__(self):
+        return '%s >= %s' % (str(self.children(0)), str(self.children(1)))
 
 class GtNode(FOLNode):
     def __init__(self, left, right=None):
@@ -186,6 +213,8 @@ class GtNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitGt(self)
 
+    def __str__(self):
+        return '%s > %s' % (str(self.children(0)), str(self.children(1)))
 
 class LtNode(FOLNode):
     def __init__(self, left, right=None):
@@ -201,6 +230,8 @@ class LtNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitLt(self)
 
+    def __str__(self):
+        return '%s < %s' % (str(self.children(0)), str(self.children(1)))
 
 class EqNode(FOLNode):
     def __init__(self, left, right=None):
@@ -246,6 +277,9 @@ class UninRelNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitUninRel(self)
 
+    def __str__(self):
+        return '%s(%s)' % (self._name, ','.join([str(c) for c in self.children()]))
+
 # Term
 
 
@@ -259,6 +293,9 @@ class UninConstNode(FOLNode):
     def accept(self, visitor):
         return visitor.visitUninConst(self)
 
+    def __str__(self):
+        return self._name
+
 
 class IntNode(FOLNode):
     def __init__(self, n):
@@ -269,6 +306,9 @@ class IntNode(FOLNode):
 
     def accept(self, visitor):
         return visitor.visitInt(self)
+
+    def __str__(self):
+        return str(self._n)
 
 
 class FunNode(FOLNode):

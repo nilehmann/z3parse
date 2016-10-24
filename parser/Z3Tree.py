@@ -143,36 +143,57 @@ z3_op_to_tree_cnstr = {
     z3c.Z3_OP_ADD: ft.AddNode,
     z3c.Z3_OP_SUB: ft.SubNode,
     z3c.Z3_OP_MUL: ft.MulNode,
-    }
+   }
+
+ # Z3_OP_UNINTERPRETED = 2351
+ # Z3_OP_ANUM = 512
 
 
-def treeFromQuantifier(obj, xs):
-    ys = [str(obj.var_name(i)) for i in range(obj.num_vars())]
-    new_xs = xs + ys
-    body = treeFromZ3(obj.body(), new_xs)
-    quantifier = ft.ForAllNode if obj.is_forall() else ft.ExistsNode
-    return quantifier(ys, body)
+# def treeFromQuantifier(obj, xs):
+#     ys = [str(obj.var_name(i)) for i in range(obj.num_vars())]
+#     new_xs = xs + ys
+#     body = treeFromZ3(obj.body(), new_xs)
+#     quantifier = ft.ForAllNode if obj.is_forall() else ft.ExistsNode
+#     return quantifier(ys, body)
 
 
-def treeFromApp(obj, xs):
-    k = obj.decl().kind()
-    op = z3_op_to_tree_cnstr.get(k, None)
-    if op is None:
-        op = obj.decl().name()
-    return str(op) + str([treeFromZ3(c, xs) for c in obj.children()])
+# def treeFromApp(obj, xs):
+#     k = obj.decl().kind()
+#     op = z3_op_to_tree_cnstr.get(k, None)
+#     if op is None:
+#         op = obj.decl().name()
+#     return str(op) + str([treeFromZ3(c, xs) for c in obj.children()])
 
 
-def treeFromVar(obj, xs):
-    idx = z3.get_var_index(obj)
-    return xs[idx]
+# def treeFromVar(obj, xs):
+#     idx = z3.get_var_index(obj)
+#     return xs[idx]
 
 
-def treeFromZ3(obj, xs=[]):
+def z3visitor(obj, xs=[]):
     if z3.is_quantifier(obj):
-        return treeFromQuantifier(obj, xs)
+        ys = [str(obj.var_name(i)) for i in range(obj.num_vars())]
+        new_xs = xs + ys
+        body = z3visitor(obj.body(), new_xs)
+        quantifier = ft.ForAllNode if obj.is_forall() else ft.ExistsNode
+        return quantifier(ys, body)
     elif z3.is_app(obj):
-        return treeFromApp(obj, xs)
+        k = obj.decl().kind()
+        op = z3_op_to_tree_cnstr.get(k, None)
+        children = [z3visitor(c, xs) for c in obj.children()]
+        if op is None:
+            name = obj.decl().name()
+            if obj.sort() == z3.BoolSort():
+                return ft.UninRelNode(name, children)
+            else:
+                if k == z3c.Z3_OP_UNINTERPRETED:
+                    return ft.UninConstNode(name, children)
+                elif k == z3c.Z3_OP_ANUM:
+                    return ft.IntNode(obj.as_long())
+        else:
+            return op(*children)
     elif z3.is_var(obj):
-        return treeFromVar(obj, xs)
+        idx = z3.get_var_index(obj)
+        return ft.UninConstNode(xs[idx])
     else:
         raise Exception("Unrecognized expression")
